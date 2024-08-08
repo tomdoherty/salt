@@ -4,6 +4,9 @@
 
 import salt.utils.yamldumper
 from tests.support.unit import TestCase
+from collections import OrderedDict, defaultdict
+from salt.utils.context import NamespacedDictWrapper
+from salt.utils.odict import HashableOrderedDict
 
 
 class YamlDumperTestCase(TestCase):
@@ -35,3 +38,67 @@ class YamlDumperTestCase(TestCase):
             salt.utils.yamldumper.safe_dump(data, default_flow_style=False)
             == "foo: bar\n"
         )
+
+    def test_yaml_ordered_dump(self):
+        """
+        Test yaml.dump with OrderedDict
+        """
+        data = OrderedDict([("foo", "bar"), ("baz", "qux")])
+        exp_yaml = "{foo: bar, baz: qux}\n"
+        assert salt.utils.yamldumper.dump(data, Dumper=salt.utils.yamldumper.OrderedDumper) == exp_yaml
+
+    def test_yaml_safe_ordered_dump(self):
+        """
+        Test yaml.safe_dump with OrderedDict
+        """
+        data = OrderedDict([("foo", "bar"), ("baz", "qux")])
+        exp_yaml = "{foo: bar, baz: qux}\n"
+        assert salt.utils.yamldumper.safe_dump(data) == exp_yaml
+
+    def test_yaml_indent_safe_ordered_dump(self):
+        """
+        Test yaml.dump with IndentedSafeOrderedDumper
+        """
+        data = OrderedDict([("foo", ["bar", "baz"]), ("qux", "quux")])
+        exp_yaml = "foo:\n- bar\n- baz\nqux: quux\n"
+        assert salt.utils.yamldumper.dump(data, Dumper=salt.utils.yamldumper.IndentedSafeOrderedDumper, default_flow_style=False) == exp_yaml
+
+    def test_yaml_defaultdict_dump(self):
+        """
+        Test yaml.dump with defaultdict
+        """
+        data = defaultdict(list)
+        data["foo"].append("bar")
+        exp_yaml = "foo: [bar]\n"
+        assert salt.utils.yamldumper.safe_dump(data) == exp_yaml
+
+    def test_yaml_namespaced_dict_wrapper_dump(self):
+        """
+        Test yaml.dump with NamespacedDictWrapper
+        """
+        data = NamespacedDictWrapper({"test": {"foo": "bar"}}, "test")
+        exp_yaml = (
+            "!!python/object/new:salt.utils.context.NamespacedDictWrapper\n"
+            "dictitems: {foo: bar}\n"
+            "state:\n"
+            "  _NamespacedDictWrapper__dict:\n"
+            "    test: {foo: bar}\n"
+            "  pre_keys: !!python/tuple [test]\n"
+        )
+        assert salt.utils.yamldumper.dump(data) == exp_yaml
+
+    def test_yaml_undefined_dump(self):
+        """
+        Test yaml.safe_dump with None
+        """
+        data = {"foo": None}
+        exp_yaml = "{foo: null}\n"
+        assert salt.utils.yamldumper.safe_dump(data) == exp_yaml
+
+    def test_yaml_hashable_ordered_dict_dump(self):
+        """
+        Test yaml.dump with HashableOrderedDict
+        """
+        data = HashableOrderedDict([("foo", "bar"), ("baz", "qux")])
+        exp_yaml = "{foo: bar, baz: qux}\n"
+        assert salt.utils.yamldumper.dump(data, Dumper=salt.utils.yamldumper.OrderedDumper) == exp_yaml
