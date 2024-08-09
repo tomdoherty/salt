@@ -51,7 +51,7 @@ from salt.exceptions import CommandExecutionError, SaltRenderError, SaltReqTimeo
 from salt.serializers.msgpack import deserialize as msgpack_deserialize
 from salt.serializers.msgpack import serialize as msgpack_serialize
 from salt.template import compile_template, compile_template_str
-from salt.utils.odict import DefaultOrderedDict, HashableOrderedDict, OrderedDict
+from salt.utils.odict import DefaultOrderedDict, HashableOrderedDict
 
 log = logging.getLogger(__name__)
 
